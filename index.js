@@ -46,8 +46,8 @@ async function run() {
 
 
         app.get('/products', async (req, res) => {
-            const email = req.query.seller_email;
-            const query = { email: email };
+            const email = req.query.email;
+            const query = { seller_email: email };
             const bookings = await productCollection.find(query).toArray();
             res.send(bookings);
         })
@@ -97,10 +97,19 @@ async function run() {
 
 
         app.get('/bookings', async (req, res) => {
-            const email = req.query.user_email;
-            const query = { email: email };
+            const email = req.query.email;
+            const query = { user_email: email };
             const bookings = await bookingsCollection.find(query).toArray();
             res.send(bookings);
+        })
+
+
+
+        app.get('/users', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role };
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
         })
 
 
@@ -141,4 +150,4 @@ run().catch(err => console.error(err))
 app.get('/', async(req, res) => {
     res.send('Mobile Mart server is running')
 })
-app.listen(port, () => console.log(`Doctors Portal Running on Port ${port}`))
+app.listen(port, () => console.log(`Mobile Mart Running on Port ${port}`))
