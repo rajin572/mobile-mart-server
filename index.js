@@ -59,6 +59,22 @@ async function run() {
             const result = await bookingsCollection.insertOne(booking);
             res.send(result);
         })
+
+
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const email = user.email;
+            const filter = {email: email}
+            const options = { upsert: true };
+            const obj ={
+                email: user.email,
+                name: user.name,
+                role: user.role || 'user'
+            } 
+            const updateDoc = {$set: obj}
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
     }
     finally{
 
