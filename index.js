@@ -35,6 +35,16 @@ async function run() {
             res.send(categories);
         });
 
+
+
+        app.get("/categories/:id", async(req, res) => {
+            const id = req.params.id
+            const query = {category_id: id}
+            const service = await productCollection.find(query).toArray()
+            res.send(service)
+          });
+
+
         app.get('/products', async (req, res) => {
             const email = req.query.seller_email;
             const query = { email: email };
@@ -66,13 +76,6 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/categories/:id", async(req, res) => {
-            const id = req.params.id
-            const query = {category_id: id}
-            const service = await productCollection.find(query).toArray()
-            res.send(service)
-          });
-
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
@@ -93,6 +96,14 @@ async function run() {
         })
 
 
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.user_email;
+            const query = { email: email };
+            const bookings = await bookingsCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
+
         app.put('/users', async (req, res) => {
             const user = req.body;
             const email = user.email;
@@ -101,20 +112,13 @@ async function run() {
             const obj ={
                 email: user.email,
                 name: user.name,
-                role: user.role || 'user'
+                role: user.role || 'buyer'
             } 
             const updateDoc = {$set: obj}
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         })
 
-
-        app.get('/bookings', async (req, res) => {
-            const email = req.query.user_email;
-            const query = { email: email };
-            const bookings = await bookingsCollection.find(query).toArray();
-            res.send(bookings);
-        })
     }
     finally{
 
