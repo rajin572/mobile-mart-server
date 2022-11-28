@@ -27,12 +27,44 @@ async function run() {
         const categoriesCollection = client.db("mobileMart").collection("categories");
         const productCollection = client.db("mobileMart").collection("product");
         const bookingsCollection = client.db("mobileMart").collection("bookingProduct");
+        const advertiseCollection = client.db("mobileMart").collection("advertiseProduct");
 
         app.get('/categories', async (req, res) => {
             const query = {};
-            const users = await categoriesCollection.find(query).toArray();
-            res.send(users);
+            const categories = await categoriesCollection.find(query).toArray();
+            res.send(categories);
         });
+
+        app.get('/products', async (req, res) => {
+            const email = req.query.seller_email;
+            const query = { email: email };
+            const bookings = await productCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
+
+        app.get('/advertise', async (req, res) => {
+            const query = {};
+            const advertise = await advertiseCollection.find(query).toArray();
+            res.send(advertise);
+        });
+
+        app.post('/advertise', async (req, res) => {
+            const advertise = req.body;
+            const query = {
+                name: advertise.name,
+                resalePrice: advertise.resalePrice
+            }
+
+            const alreadyadded = await advertiseCollection.find(query).toArray();
+    
+            if (alreadyadded.length){
+                const message = `You already have a booking on`
+                return res.send({acknowledged: false, message})
+            }
+            const result = await advertiseCollection.insertOne(advertise);
+            res.send(result);
+        })
 
         app.get("/categories/:id", async(req, res) => {
             const id = req.params.id
@@ -74,6 +106,14 @@ async function run() {
             const updateDoc = {$set: obj}
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
+        })
+
+
+        app.get('/bookings', async (req, res) => {
+            const email = req.query.user_email;
+            const query = { email: email };
+            const bookings = await bookingsCollection.find(query).toArray();
+            res.send(bookings);
         })
     }
     finally{
