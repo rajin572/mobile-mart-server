@@ -25,12 +25,41 @@ async function run() {
     try{
         const usersCollection = client.db("mobileMart").collection("users");
         const categoriesCollection = client.db("mobileMart").collection("categories");
+        const productCollection = client.db("mobileMart").collection("product");
+        const bookingsCollection = client.db("mobileMart").collection("bookingProduct");
 
         app.get('/categories', async (req, res) => {
             const query = {};
             const users = await categoriesCollection.find(query).toArray();
             res.send(users);
         });
+
+        app.get("/categories/:id", async(req, res) => {
+            const id = req.params.id
+            const query = {category_id: id}
+            const service = await productCollection.find(query).toArray()
+            res.send(service)
+          });
+
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            console.log(booking);
+            const query = {
+                user_email: booking.user_email,
+                Product_name: booking.Product_name 
+            }
+    
+            const alreadyBooked = await bookingsCollection.find(query).toArray();
+    
+            if (alreadyBooked.length){
+                const message = `You already have a booking on ${booking.appointmentDate}`
+                return res.send({acknowledged: false, message})
+            }
+    
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
+        })
     }
     finally{
 
