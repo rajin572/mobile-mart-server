@@ -44,12 +44,11 @@ async function run() {
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
-            console.log(booking);
             const query = {
                 user_email: booking.user_email,
                 Product_name: booking.Product_name 
             }
-    
+
             const alreadyBooked = await bookingsCollection.find(query).toArray();
     
             if (alreadyBooked.length){
