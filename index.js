@@ -52,7 +52,6 @@ async function run() {
             res.send(bookings);
         })
 
-
         app.post('/products', async (req, res) => {
             const product = req.body;
     
