@@ -119,6 +119,12 @@ async function run() {
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         })
+        app.get('/allUsers', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const allUsers = await usersCollection.findOne(query);
+            res.send(allUsers);
+        })
 
 
         app.put('/users', async (req, res) => {
