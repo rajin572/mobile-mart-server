@@ -1,168 +1,149 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const express = require("express");
+const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const port = process.env.PORT || 5000;
-require('dotenv').config()
+require("dotenv").config();
 
-const app = express()
+const app = express();
 
 // middleware
 app.use(cors());
-app.use(express.json())
-
-
+app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nl9uncn.mongodb.net/?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
-
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
 async function run() {
-    try{
-        const usersCollection = client.db("mobileMart").collection("users");
-        const categoriesCollection = client.db("mobileMart").collection("categories");
-        const productCollection = client.db("mobileMart").collection("product");
-        const bookingsCollection = client.db("mobileMart").collection("bookingProduct");
-        const advertiseCollection = client.db("mobileMart").collection("advertiseProduct");
+  try {
+    const usersCollection = client.db("mobileMart").collection("users");
+    const categoriesCollection = client
+      .db("mobileMart")
+      .collection("categories");
+    const productCollection = client.db("mobileMart").collection("product");
+    const bookingsCollection = client
+      .db("mobileMart")
+      .collection("bookingProduct");
+    const advertiseCollection = client
+      .db("mobileMart")
+      .collection("advertiseProduct");
 
-        app.get('/categories', async (req, res) => {
-            const query = {};
-            const categories = await categoriesCollection.find(query).toArray();
-            res.send(categories);
-        });
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const categories = await categoriesCollection.find(query).toArray();
+      res.send(categories);
+    });
 
+    app.get("/categories/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { category_id: id };
+      const service = await productCollection.find(query).toArray();
+      res.send(service);
+    });
 
+    app.get("/products", async (req, res) => {
+      const email = req.query.email;
+      const query = { seller_email: email };
+      const bookings = await productCollection.find(query).toArray();
+      res.send(bookings);
+    });
 
-        app.get("/categories/:id", async(req, res) => {
-            const id = req.params.id
-            const query = {category_id: id}
-            const service = await productCollection.find(query).toArray()
-            res.send(service)
-          });
+    app.post("/products", async (req, res) => {
+      const product = req.body;
 
+      const result = await productCollection.insertOne(product);
+      res.send(result);
+    });
 
-        app.get('/products', async (req, res) => {
-            const email = req.query.email;
-            const query = { seller_email: email };
-            const bookings = await productCollection.find(query).toArray();
-            res.send(bookings);
-        })
+    app.get("/advertise", async (req, res) => {
+      const query = {};
+      const advertise = await advertiseCollection.find(query).toArray();
+      res.send(advertise);
+    });
 
-        app.post('/products', async (req, res) => {
-            const product = req.body;
-    
-            const result = await productCollection.insertOne(product);
-            res.send(result);
-        })
+    app.post("/advertise", async (req, res) => {
+      const advertise = req.body;
+      const query = {
+        name: advertise.name,
+        resalePrice: advertise.resalePrice,
+      };
 
+      const alreadyadded = await advertiseCollection.find(query).toArray();
 
-        app.get('/advertise', async (req, res) => {
-            const query = {};
-            const advertise = await advertiseCollection.find(query).toArray();
-            res.send(advertise);
-        });
+      if (alreadyadded.length) {
+        const message = `You already have a booking on`;
+        return res.send({ acknowledged: false, message });
+      }
+      const result = await advertiseCollection.insertOne(advertise);
+      res.send(result);
+    });
 
-        app.post('/advertise', async (req, res) => {
-            const advertise = req.body;
-            const query = {
-                name: advertise.name,
-                resalePrice: advertise.resalePrice
-            }
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+      const query = {
+        user_email: booking.user_email,
+        Product_name: booking.Product_name,
+      };
 
-            const alreadyadded = await advertiseCollection.find(query).toArray();
-    
-            if (alreadyadded.length){
-                const message = `You already have a booking on`
-                return res.send({acknowledged: false, message})
-            }
-            const result = await advertiseCollection.insertOne(advertise);
-            res.send(result);
-        })
+      const alreadyBooked = await bookingsCollection.find(query).toArray();
 
+      if (alreadyBooked.length) {
+        const message = `You already have a booking on ${booking.appointmentDate}`;
+        return res.send({ acknowledged: false, message });
+      }
 
-        app.post('/bookings', async (req, res) => {
-            const booking = req.body;
-            const query = {
-                user_email: booking.user_email,
-                Product_name: booking.Product_name 
-            }
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
 
-            const alreadyBooked = await bookingsCollection.find(query).toArray();
-    
-            if (alreadyBooked.length){
-                const message = `You already have a booking on ${booking.appointmentDate}`
-                return res.send({acknowledged: false, message})
-            }
-    
-            const result = await bookingsCollection.insertOne(booking);
-            res.send(result);
-        })
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
+      const query = { user_email: email };
+      const bookings = await bookingsCollection.find(query).toArray();
+      res.send(bookings);
+    });
 
+    app.get("/users", async (req, res) => {
+      const role = req.query.role;
+      const query = { role: role };
+      const users = await usersCollection.find(query).toArray();
+      res.send(users);
+    });
 
-        app.get('/bookings', async (req, res) => {
-            const email = req.query.email;
-            const query = { user_email: email };
-            const bookings = await bookingsCollection.find(query).toArray();
-            res.send(bookings);
-        })
+    app.get("/user", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const allUsers = await usersCollection.findOne(query);
+      res.send(allUsers);
+    });
 
-
-
-        app.get('/users', async (req, res) => {
-            const role = req.query.role;
-            const query = { role: role };
-            const users = await usersCollection.find(query).toArray();
-            res.send(users);
-        })
-
-        
-        app.get('/user', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email };
-            const allUsers = await usersCollection.findOne(query);
-            res.send(allUsers);
-        })
-
-
-        app.put('/users', async (req, res) => {
-            const user = req.body;
-            const email = user.email;
-            const filter = {email: email}
-            const options = { upsert: true };
-            const obj ={
-                email: user.email,
-                name: user.name,
-                role: user.role || 'buyer'
-            } 
-            const updateDoc = {$set: obj}
-            const result = await usersCollection.updateOne(filter, updateDoc, options);
-            res.send(result);
-        })
-
-    }
-    finally{
-
-    }
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const email = user.email;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const obj = {
+        email: user.email,
+        name: user.name,
+        role: user.role || "buyer",
+      };
+      const updateDoc = { $set: obj };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
+  } finally {
+  }
 }
-run().catch(err => console.error(err))
+run().catch((err) => console.error(err));
 
-
-
-
-
-
-
-
-
-
-
-
-
-app.get('/', async(req, res) => {
-    res.send('Mobile Mart server is running')
-})
-app.listen(port, () => console.log(`Mobile Mart Running on Port ${port}`))
+app.get("/", async (req, res) => {
+  res.send("Mobile Mart server is running");
+});
+app.listen(port, () => console.log(`Mobile Mart Running on Port ${port}`));
