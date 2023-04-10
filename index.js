@@ -142,21 +142,9 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/scrapingData", async (req, res) => {
-    //   const url = 'https://en.wikipedia.org/wiki/U.S._state' 
-    //   let data = await axios.get(url)
-    //    let $ = await cheerio.load(data.data)
-    //    $(
-    //     "#mw-content-text > div.mw-parser-output > div.div-col"
-    //   ).each((i, e) => {
-    //     state.push($(e).text().trim());
-    //   });
-    //    console.log($);
-    //    res.send(state)
-    // })
 
   app.get("/scrapingData", async (req, res) => {
-  const URL = 'https://www.amazon.com/s?k=gaming+apparel&pd_rd_r=20c3970d-ed11-4449-84a6-93aa027cc572&pd_rd_w=r7aie&pd_rd_wg=6KWcf&pf_rd_p=09483392-9ac6-434a-a3d7-39d83662f54a&pf_rd_r=Y48JWRX17EH9C9GRWDDC&ref=pd_gw_unk'
+  const URL = 'https://www.wikipedia.org/'
   let product = []
 
   axios(URL)
@@ -164,15 +152,9 @@ async function run() {
       const htmlData = response.data
       const $ = cheerio.load(htmlData)
 
-      // $(
-      //   "#root > div > div.ant-row.main--pIV2h > div:nth-child(1) > div > div.ant-col-20.ant-col-push-4.side-right--Tyehf > div.box--ujueT > div:nth-child(1) > div > div > div.info--ifj7U > div.title--wFj93"
-      // ).each((i, e) => {
-      //   product.push($(e).text().trim());
-      // });
 
-
-      $('.s-widget-container>div>div', htmlData).each((index, element) => {
-        const title = $(element).find('.title--wFj93').text()
+      $('.price--NVB62', htmlData).each((index, element) => {
+        const title = $(element).find('.currency--GVKjl').text()
         console.log(title);
         const titleURL = $(element).find('.title--wFj93').attr('href')
         product.push({
